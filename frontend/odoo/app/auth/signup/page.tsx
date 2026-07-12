@@ -1,348 +1,220 @@
 'use client'
 import { useState } from "react";
-import axios,{ AxiosError }  from "axios";
-import type { ReactNode } from "react";
+import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
-import { Lock, Mail, User } from "lucide-react"
-const AVATAR_SRC =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAV_HEM2GFeH0UHpQL_e796s5ZOBlbqE7PThOMkCm6w9dnfKSyOayFLOTPBDDoQsjrdpHMYrfhpbm34zqaekNMBqCZ-OelJXPI5neA7EwaC3sus9-NfyqytdnnYrvqu1MUnVj8VPvEcoepN5ba5eOEi2i2D-bLRBvvfqdSYrh-MWT2_0MFS-4Pxv69B4Vwh4Pvo9_cZWKC9WvNE6XVtvS0TMZB981G9EqgQRH7dixf_Z9Qe6B-pvrce1gWDNjJWFfHap6Z4EqBmKdet";
-
-// ── Local field component (right-icon layout, different from AuthInput's left-icon) ──
-function SignUpField({
-  id,
-  label,
-  type = "text",
-  placeholder,
-  icon,
-  value,
-  onChange,
-  required = false,
-}:{
-    id:string,
-    label:string,
-    type?: string,
-    placeholder:string,
-    icon:React.ReactNode,
-    value:string,
-    onChange:React.ChangeEventHandler<HTMLInputElement>,
-    required?:boolean,
-}) {
-  return (
-    <div className="space-y-2 group">
-      <label
-        htmlFor={id}
-        className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          name={id}
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          required={required}
-          className="w-full bg-surface-container-high rounded-md px-4 py-4 border-2 border-outline-variant/20 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:shadow-md text-on-surface placeholder:text-outline transition-all duration-300"
-        />
-        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline text-sm">
-          {icon}
-        </span>
-      </div>
-    </div>
-  );
-}
+import { Mail, Lock, User, Building, ArrowRight, Eye, Truck, Activity, ShieldCheck } from "lucide-react";
 
 export default function SignUpPage() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [agreed, setAgreed] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    companyName: "",
+    password: "",
+    confirmPassword: "",
+    agreeToTerms: false
+  });
   const [loading, setLoading] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [verificationToken, setVerificationToken] = useState("");
-  const navigate = useRouter();
 
-function verifyEmail(email: string) {
-  const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-  return regex.test(email);
-}
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
 
-  function set(field: keyof typeof form) {
-    return (e:React.ChangeEvent<HTMLInputElement>) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
-  }
-
-  async function handleSubmit(e:React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!agreed) {
-      toast.error("Please agree to the Terms of Service.");
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
       return;
     }
-
-    if (!verifyEmail(form.email)) {
-      toast.error("Use a valid Amrita student email");
-      return;
-    }
-
     setLoading(true);
-
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signup`,
-        {
-          userData: {
-            name: form.name,
-            mail: form.email,
-            password: form.password,
-          },
-        },
-      );
-
-      setVerificationToken(res.data.verificationToken);
-      setIsVerifying(true);
-
-      toast.success("OTP sent to your email!");
-    } catch (err: unknown) {
-  if (axios.isAxiosError(err)) {
-    toast.error(err.response?.data?.message || "Signup failed");
-  } else {
-    toast.error("Signup failed");
-  }}
-  finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerifyOtp(e:React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-otp`,
-        {
-          otp,
-          verificationToken,
-        },
-      );
-
-      const { token, user } = res.data;
-
-      toast.success("Account verified!");
-      toast.info("Redirecting...");
-
-      setTimeout(() => {
-        navigate.push("/");
-      }, 1000);
-    } catch (err:unknown) {
-        if(axios.isAxiosError(err)){
-      toast.error(err.response?.data?.message || "Invalid OTP");}
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, formData);
+      if (res.status === 201 || res.status === 200) {
+        toast.success("Account created successfully!");
+        window.location.href = "/auth/signin";
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed h-screen w-screen overflow-hidden flex flex-col">
-      <ToastContainer position="top-right" autoClose={3000} />
-      <main className="flex-1 flex items-center justify-center px-4 relative">
-        {/* Ambient background blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-fixed/20 rounded-full blur-[120px] hidden lg:block" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary-container/20 rounded-full blur-[120px] hidden lg:block" />
+    <div className="min-h-screen bg-[#F9FAFB] text-gray-900 flex flex-col justify-between font-sans relative overflow-hidden selection:bg-[#B9004B]/10 selection:text-[#B9004B]">
+      {/* Structural Operational Grid Overlays */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#E5E7EB_1px,transparent_1px),linear-gradient(to_bottom,#E5E7EB_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-60 pointer-events-none" />
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#B9004B]/5 rounded-full blur-[128px] pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[160px] pointer-events-none" />
 
-        <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-12 md:gap-16 z-10">
-          {/* ── Left: Branding / editorial column ── */}
-          <div className="flex-1 text-center md:text-left space-y-8 max-w-xl hidden lg:flex lg:flex-col">
-            {/* Pill badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface-container rounded-full text-primary font-medium text-sm tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-secondary" />
-              Track Ur Moves
-            </div>
+      <ToastContainer position="top-right" theme="light" autoClose={3000} />
 
-            {/* Hero heading */}
-            <h1 className="font-display text-5xl md:text-7xl font-black tracking-tighter text-primary leading-[1.1]">
-              The Atom <br />
-              <span className="text-on-primary-container italic font-medium">
-                    .
-              </span>
-            </h1>
+      {/* Header */}
+      <header className="w-full max-w-7xl mx-auto px-6 sm:px-12 py-6 flex items-center justify-between z-10 relative">
+        <div className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
+          <div className="p-2 bg-gradient-to-br from-[#B9004B] to-[#7A0032] rounded-xl shadow-md shadow-[#B9004B]/10">
+            <Truck className="h-5 w-5 text-white stroke-[2.5]" />
+          </div>
+          <span>TransitOps</span>
+        </div>
+        <a href="#support" className="text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-[#B9004B] transition-colors">
+          System Support
+        </a>
+      </header>
 
-            <p className="text-on-surface-variant text-lg md:text-xl leading-relaxed font-light">
-             Built for the future of logistics. Simplify fleet coordination, reduce downtime, monitor costs, and keep your transport operations running at peak efficiency.
-            </p>
-
-            {/* Floating testimonial quote */}
-            <div className="hidden lg:flex items-start gap-4 p-6 bg-surface-container-low rounded-xl translate-x-8 border-l-4 border-primary-container">
-              <img
-                src={AVATAR_SRC}
-                alt="Elena R."
-                className="w-12 h-12 object-cover rounded-full shrink-0"
-              />
-              <div>
-                <p className="text-sm font-medium italic text-on-surface">
-                 "The dispatch system helped us eliminate scheduling conflicts and improve vehicle utilization across our fleet."
-                </p>
-                <span className="text-xs text-on-surface-variant font-bold uppercase tracking-widest mt-1 block">
-                 - Elena R., Regional Manager
-                </span>
-              </div>
-            </div>
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto w-full px-6 sm:px-12 py-6 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8 flex-1 z-10 relative">
+        
+        {/* Left Information Panel */}
+        <div className="flex-1 space-y-8 max-w-xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded-full text-[11px] font-bold tracking-wider uppercase shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B9004B] animate-pulse" />
+            Next-Gen Routing Architecture
           </div>
 
-          {/* ── Right: Sign-up form card ── */}
-          <div className="w-full max-w-md">
-            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-2xl shadow-lg border border-outline-variant/50">
-              <div className="mb-10">
-                <h2 className="font-display text-3xl font-bold tracking-tight text-primary mb-2">
-                  Create Account
-                </h2>
-                <p className="text-on-surface-variant text-sm">
-                  Start your journey as a student curator today.
-                </p>
+          <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black tracking-tight text-gray-900 leading-[1.1]">
+            Deploying the <br />
+            <span className="bg-gradient-to-r from-[#B9004B] via-[#E01E6E] to-pink-600 bg-clip-text text-transparent">
+              Global Supply Layer
+            </span>
+          </h1>
+
+          <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-md font-medium">
+            Streamline high-velocity transit operations with unified telemetry, automated dispatch paths, and ironclad compliance.
+          </p>
+
+          {/* Micro Telemetry Metrics */}
+          <div className="grid grid-cols-2 gap-4 max-w-md">
+            <div className="bg-white border border-gray-200 p-5 rounded-2xl space-y-1 relative group hover:border-gray-300 transition-colors shadow-sm">
+              <div className="absolute top-3 right-3 text-[#B9004B] opacity-60"><Activity className="h-4 w-4" /></div>
+              <div className="text-2xl font-black text-gray-900 tracking-tight">99.99%</div>
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Operational SLA</div>
+            </div>
+            <div className="bg-white border border-gray-200 p-5 rounded-2xl space-y-1 relative group hover:border-gray-300 transition-colors shadow-sm">
+              <div className="absolute top-3 right-3 text-blue-600 opacity-60"><ShieldCheck className="h-4 w-4" /></div>
+              <div className="text-2xl font-black text-gray-900 tracking-tight">Real-Time</div>
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Fleet Telemetry</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Authentication Form Card */}
+        <div className="w-full max-w-xl bg-white border border-gray-200 p-8 sm:p-10 rounded-[32px] shadow-xl shadow-gray-200/30 relative">
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#B9004B]/40 to-transparent" />
+          
+          <div className="mb-8">
+            <h2 className="text-2xl font-black tracking-tight text-gray-900">
+              Initialize Terminal Access
+            </h2>
+            <p className="text-gray-500 text-xs mt-1">
+              Configure your administrative profiles to start optimization paths.
+            </p>
+          </div>
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold tracking-wider uppercase text-gray-500">Full Name</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><User className="h-4 w-4" /></span>
+                  <input type="text" name="fullName" placeholder="Alex Mercer" required value={formData.fullName} onChange={handleChange}
+                    className="w-full pl-11 pr-4 py-3 bg-[#F9FAFB] rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-[#B9004B] focus:ring-1 focus:ring-[#B9004B] transition-all" />
+                </div>
               </div>
-              {!isVerifying ? (
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  <SignUpField
-                    id="name"
-                    label="Full Name"
-                    placeholder="Alex Rivera"
-                    icon={<User/>}
-                    value={form.name}
-                    onChange={set("name")}
-                  />
-                  <SignUpField
-                    id="email"
-                    label="Email Address"
-                    type="email"
-                    placeholder="alex@university.edu"
-                    icon={<Mail/>}
-                    value={form.email}
-                    onChange={set("email")}
-                  />
-                  <SignUpField
-                    id="password"
-                    label="Password"
-                    type="password"
-                    placeholder="••••••••"
-                    icon={<Lock/>}
-                    value={form.password}
-                    onChange={set("password")}
-                  />
-
-                  {/* Terms checkbox */}
-                  <div className="flex items-center gap-3 py-2">
-                    <input
-                      id="terms"
-                      type="checkbox"
-                      checked={agreed}
-                      onChange={(e) => setAgreed(e.target.checked)}
-                      className="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary"
-                    />
-                    <label
-                      htmlFor="terms"
-                      className="text-xs text-on-surface-variant leading-snug"
-                    >
-                      I agree to the{" "}
-                      <a
-                        href="#"
-                        className="text-primary font-bold hover:underline"
-                      >
-                        Terms of Service
-                      </a>{" "}
-                      and{" "}
-                      <a
-                        href="#"
-                        className="text-primary font-bold hover:underline"
-                      >
-                        Privacy Policy
-                      </a>
-                      .
-                    </label>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full editorial-gradient text-on-primary font-bold py-5 rounded-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-lg tracking-tight disabled:opacity-70 text-white"
-                    >
-                      {loading ? "Sending OTP..." : "Create Account"}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <form
-                  className="space-y-6 text-center"
-                  onSubmit={handleVerifyOtp}
-                >
-                  <h2 className="text-xl font-bold text-primary">
-                    Verify your email
-                  </h2>
-
-                  <p className="text-sm text-on-surface-variant">
-                    Enter the 6-digit code sent to <br />
-                    <span className="font-semibold">{form.email}</span>
-                  </p>
-
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="w-full text-center text-2xl tracking-[0.5em] py-4 border-2 border-primary rounded-md bg-white text-black"
-                    placeholder="000000"
-                    required
-                  />
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-green-600 text-white py-4 rounded-md disabled:opacity-70"
-                  >
-                    {loading ? "Verifying..." : "Verify & Sign In"}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsVerifying(false)}
-                    className="text-sm text-gray-500 hover:text-primary"
-                  >
-                    ← Back
-                  </button>
-                </form>
-              )}
-              {/* Sign in link */}
-              <div className="mt-10 pt-8 border-t border-surface-container-high text-center">
-                <p className="text-on-surface-variant text-sm">
-                  Already have an account?{" "}
-                  <a
-                    href="/auth/signin"
-                    className="text-secondary font-bold hover:text-on-secondary-container transition-colors ml-1"
-                  >
-                    Log in
-                  </a>
-                </p>
+              {/* Company Name */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold tracking-wider uppercase text-gray-500">Company Name</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Building className="h-4 w-4" /></span>
+                  <input type="text" name="companyName" placeholder="Global Fleet Logistics" required value={formData.companyName} onChange={handleChange}
+                    className="w-full pl-11 pr-4 py-3 bg-[#F9FAFB] rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-[#B9004B] focus:ring-1 focus:ring-[#B9004B] transition-all" />
+                </div>
               </div>
             </div>
 
-            {/* Trust badges */}
-            <div className="mt-6 flex justify-center items-center gap-6 opacity-40 grayscale contrast-125 hidden md:flex">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
-                Secure Enrollment
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
-                Verified Students
-              </span>
+            {/* Work Email */}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold tracking-wider uppercase text-gray-500">Work Email Address</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Mail className="h-4 w-4" /></span>
+                <input type="email" name="email" placeholder="a.mercer@transitops.com" required value={formData.email} onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3 bg-[#F9FAFB] rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-[#B9004B] focus:ring-1 focus:ring-[#B9004B] transition-all" />
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Password */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold tracking-wider uppercase text-gray-500">Secure Password</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Lock className="h-4 w-4" /></span>
+                  <input type="password" name="password" placeholder="••••••••" required value={formData.password} onChange={handleChange}
+                    className="w-full pl-11 pr-11 py-3 bg-[#F9FAFB] rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-[#B9004B] focus:ring-1 focus:ring-[#B9004B] transition-all" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"><Eye className="h-4 w-4" /></span>
+                </div>
+              </div>
+              {/* Confirm Password */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold tracking-wider uppercase text-gray-500">Confirm Password</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Lock className="h-4 w-4" /></span>
+                  <input type="password" name="confirmPassword" placeholder="••••••••" required value={formData.confirmPassword} onChange={handleChange}
+                    className="w-full pl-11 pr-11 py-3 bg-[#F9FAFB] rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-[#B9004B] focus:ring-1 focus:ring-[#B9004B] transition-all" />
+                </div>
+              </div>
+            </div>
+
+            {/* Terms and Agreements Checkbox */}
+            <div className="flex items-start gap-2.5 pt-2">
+              <input id="agreeToTerms" name="agreeToTerms" type="checkbox" checked={formData.agreeToTerms} onChange={handleChange} required
+                className="mt-0.5 w-4 h-4 rounded bg-[#F9FAFB] border-gray-200 text-[#B9004B] focus:ring-[#B9004B] focus:ring-offset-0" />
+              <label htmlFor="agreeToTerms" className="text-xs text-gray-500 leading-normal font-medium select-none">
+                I authorize access terms and agree to the <a href="#terms" className="text-[#B9004B] font-bold hover:underline">Terms of Infrastructure Use</a> and <a href="#privacy" className="text-[#B9004B] font-bold hover:underline">Data Safety Protocols</a>.
+              </label>
+            </div>
+
+            {/* Form Submission Execution Action */}
+            <div className="pt-3">
+              <button type="submit" disabled={loading}
+                className="w-full bg-gradient-to-r from-[#B9004B] to-[#91003B] hover:from-[#CD0053] hover:to-[#A30043] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#B9004B]/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-wider disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {loading ? "Allocating Node..." : "Provision Core Account"}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </form>
+
+          {/* Form Redirection Hooks */}
+          <div className="mt-8 pt-5 border-t border-gray-200 text-center">
+            <p className="text-gray-500 text-xs font-medium">
+              Already have an active terminal profile?
+              <a href="/auth/signin" className="text-[#B9004B] font-bold hover:underline ml-1.5 inline-flex items-center gap-0.5">
+                Sign In
+              </a>
+            </p>
           </div>
         </div>
       </main>
 
-     
+      {/* Styled Footer matching the operational aesthetics */}
+      <footer className="w-full border-t border-gray-200 bg-white text-gray-500 text-xs py-5 z-10 relative">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="font-bold text-gray-700 flex items-center gap-1.5 tracking-tight">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B9004B]" />
+            TransitOps Systems
+          </div>
+          <div className="flex flex-wrap items-center gap-6 font-medium">
+            <a href="#privacy" className="hover:text-gray-900 transition-colors">Privacy</a>
+            <a href="#terms" className="hover:text-gray-900 transition-colors">Terms</a>
+            <a href="#security" className="hover:text-gray-900 transition-colors">Security Architecture</a>
+          </div>
+          <div className="text-gray-400">© 2026 TransitOps Infrastructure Inc. All rights reserved.</div>
+        </div>
+      </footer>
     </div>
   );
 }

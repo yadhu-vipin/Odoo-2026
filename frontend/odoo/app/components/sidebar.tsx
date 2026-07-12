@@ -23,10 +23,10 @@ function getUserTag(): number {
 }
 
 const ROLE_PERMISSIONS: Record<number, string[]> = {
-  1: ['/dashboard', '/vehicles', '/drivers', '/trips', '/maintenance', '/expenses', '/reports', '/help', '/settings'],
-  2: ['/dashboard', '/vehicles', '/drivers', '/trips', '/help', '/settings'],
+  1: ['/dashboard', '/fleet', '/drivers', '/trips', '/maintenance', '/expenses', '/reports', '/help', '/settings'],
+  2: ['/dashboard', '/fleet', '/drivers', '/trips', '/help', '/settings'],
   3: ['/dashboard', '/drivers', '/maintenance', '/help', '/settings'],
-  4: ['/dashboard', '/vehicles', '/expenses', '/reports', '/help', '/settings'],
+  4: ['/dashboard', '/fleet', '/expenses', '/reports', '/help', '/settings'],
 };
 
 export default function Sidebar() {
@@ -44,7 +44,7 @@ export default function Sidebar() {
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'Vehicles', icon: Truck, href: '/vehicles' },
+    { label: 'Fleet', icon: Truck, href: '/fleet' },
     { label: 'Drivers', icon: Users, href: '/drivers' },
     { label: 'Trips', icon: Route, href: '/trips' },
     { label: 'Maintenance', icon: Wrench, href: '/maintenance' },
