@@ -1,63 +1,57 @@
-//  Correct unified import
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-// Explicit map definition matching your 4-user tag system requirements
-const ROLE_PERMISSIONS: Record<number, string[]> = {
-  1: ['/dashboard', '/vehicles', '/drivers'],           // Fleet Manager
-  2: ['/dashboard', '/vehicles', '/drivers'],           // Driver / Dispatcher
-  3: ['/dashboard', '/drivers'],                       // Safety Officer
-  4: ['/dashboard', '/vehicles', '/reports'],          // Financial Analyst
-};
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  // 1. Skip assets and internal files
-  if (
-    pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') || 
-    pathname.includes('.')
-  ) {
+  if (pathname.startsWith('/login') || pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname.startsWith('/favicon.ico')) {
     return NextResponse.next();
   }
 
-  // 2. Extract the user tag identity cookie
-  const userTagCookie = request.cookies.get('user_tag')?.value;
-  const userTag = userTagCookie ? parseInt(userTagCookie, 10) : null;
-
-  // 3. Handle unauthenticated public routes safety window
-  if (!userTag) {
-    if (pathname !== '/login') {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    return NextResponse.next();
+  const role = parseInt(req.cookies.get('user_tag')?.value || '', 10);
+  if (isNaN(role) || role < 1 || role > 4) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // Prevent authenticated users from going back to login
-  if (pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Dashboard is open to all roles
+  if (pathname.startsWith('/dashboard')) {
+    const res = NextResponse.next();
+    res.headers.set('x-user-tag', role.toString());
+    return res;
   }
 
-  // 4. Evaluate RBAC path restrictions
-  const allowedPaths = ROLE_PERMISSIONS[userTag] || [];
-  const hasAccess = allowedPaths.some(path => pathname.startsWith(path));
+  let allowed = false;
 
-  if (!hasAccess && pathname !== '/unauthorized') {
-    return NextResponse.redirect(new URL('/unauthorized', request.url));
+  // Fleet Matrix (/vehicles, /maintenance) -> Role 1 (Full), Roles 2 & 4 (View), Role 3 (-)
+  if (pathname.startsWith('/vehicles') || pathname.startsWith('/maintenance')) {
+    allowed = role === 1 || role === 2 || role === 4;
+  }
+  // Drivers Matrix (/drivers) -> Roles 1 & 3 (Full), Roles 2 & 4 (-)
+  else if (pathname.startsWith('/drivers')) {
+    allowed = role === 1 || role === 3;
+  }
+  // Trips Matrix (/trips) -> Role 2 (Full), Role 3 (View), Roles 1 & 4 (-)
+  else if (pathname.startsWith('/trips')) {
+    allowed = role === 2 || role === 3;
+  }
+  // Fuel / Expenses (/expenses) -> Role 4 (Full), Roles 1, 2 & 3 (-)
+  else if (pathname.startsWith('/expenses')) {
+    allowed = role === 4;
+  }
+  // Analytics / Reports (/reports) -> Roles 1 & 4 (Full), Roles 2 & 3 (-)
+  else if (pathname.startsWith('/reports')) {
+    allowed = role === 1 || role === 4;
   }
 
-  // 5. Data Fetch Orchestration: Inject headers for backend API usage tracking
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-user-tag', String(userTag));
+  if (!allowed) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  const res = NextResponse.next();
+  res.headers.set('x-user-tag', role.toString());
+  return res;
 }
 
-// Optimization matcher window block
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: '/((?!_next/static|_next/image|favicon.ico).*)',
 };
