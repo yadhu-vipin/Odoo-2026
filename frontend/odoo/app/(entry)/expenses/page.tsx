@@ -12,6 +12,8 @@ import FuelLogsTable from "./components/FuelLogsTable";
 import ExpenseLogsTable from "./components/ExpenseLogsTable";
 import FuelLogModal from "./components/FuelLogModal";
 import ExpenseModal from "./components/ExpenseModal";
+import FuelLogDetailModal from "./components/FuelLogDetailModal";
+import ExpenseDetailModal from "./components/ExpenseDetailModal";
 import { CardSkeleton, TableSkeleton } from "../trips/components/common/LoadingState";
 
 import { Fuel, Receipt } from "lucide-react";
@@ -60,8 +62,10 @@ export default function ExpensesPage() {
   // Modals state
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isFuelDetailOpen, setIsFuelDetailOpen] = useState(false);
+  const [isExpenseDetailOpen, setIsExpenseDetailOpen] = useState(false);
 
-  // Edit states
+  // Edit/View states
   const [selectedFuelLog, setSelectedFuelLog] = useState<FuelLog | undefined>(undefined);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseLog | undefined>(undefined);
 
@@ -92,16 +96,13 @@ export default function ExpensesPage() {
   };
 
   const handleViewFuelLog = (log: FuelLog) => {
-    // Show full details as read-only alert or open edit modal
-    alert(
-      `Fuel Log Details:\n\nID: ${log.id}\nVehicle: ${log.registration} (${log.vehicleName})\nDate: ${log.fuelDate}\nLiters: ${log.liters} L\nPrice per Liter: $${log.pricePerLiter}\nTotal Cost: $${log.totalCost}\nStation: ${log.fuelStation || "N/A"}\nOdometer: ${log.odometer} mi\nRemarks: ${log.remarks || "None"}`
-    );
+    setSelectedFuelLog(log);
+    setIsFuelDetailOpen(true);
   };
 
   const handleViewExpense = (exp: ExpenseLog) => {
-    alert(
-      `Expense Details:\n\nID: ${exp.id}\nVehicle: ${exp.registration} (${exp.vehicleName})\nType: ${exp.expenseType}\nAmount: $${exp.amount}\nDate: ${exp.date}\nDescription: ${exp.description}`
-    );
+    setSelectedExpense(exp);
+    setIsExpenseDetailOpen(true);
   };
 
   const isLoading = loadingFuel || loadingExpenses;
@@ -209,6 +210,33 @@ export default function ExpensesPage() {
         vehicles={MOCK_VEHICLES}
         trips={MOCK_TRIPS}
         initialData={selectedExpense}
+      />
+
+      {/* 6. Details Modals */}
+      <FuelLogDetailModal
+        isOpen={isFuelDetailOpen}
+        onClose={() => {
+          setIsFuelDetailOpen(false);
+          setSelectedFuelLog(undefined);
+        }}
+        onEdit={() => {
+          setIsFuelDetailOpen(false);
+          setIsFuelModalOpen(true);
+        }}
+        log={selectedFuelLog}
+      />
+
+      <ExpenseDetailModal
+        isOpen={isExpenseDetailOpen}
+        onClose={() => {
+          setIsExpenseDetailOpen(false);
+          setSelectedExpense(undefined);
+        }}
+        onEdit={() => {
+          setIsExpenseDetailOpen(false);
+          setIsExpenseModalOpen(true);
+        }}
+        expense={selectedExpense}
       />
     </div>
   );
