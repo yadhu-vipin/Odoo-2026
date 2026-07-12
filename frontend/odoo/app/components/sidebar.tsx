@@ -66,8 +66,12 @@ export default function Sidebar() {
             <Truck className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-[#9E003F] tracking-tight leading-none">TransitOps</h2>
-            <span className="text-[9px] font-bold text-[#8A7578] uppercase tracking-wider block mt-1">Operational Core</span>
+            <h2 className="text-lg font-black text-[#9E003F] tracking-tight leading-none">
+              TransitOps
+            </h2>
+            <span className="text-[9px] font-bold text-[#8A7578] uppercase tracking-wider block mt-1">
+              Operational Core
+            </span>
           </div>
         </div>
 
