@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Trash2,
 } from 'lucide-react';
-import { PageHeader, KpiCard, Card, StatusBadge, FilterPill, Table } from './dashboardui';
+import { PageHeader, KpiCard, Card, StatusBadge, FilterPill, Table } from './dashboardui'
 
 type VehicleStatus = 'Available' | 'On Trip' | 'In Shop' | 'Retired';
 type DriverStatus = 'Available' | 'On Trip' | 'Off Duty' | 'Suspended';
