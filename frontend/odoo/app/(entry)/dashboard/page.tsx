@@ -1,337 +1,267 @@
-"use client";
-
-import React, { useState } from 'react';
+import React from 'react';
+import { headers, cookies } from 'next/headers';
 import { 
-  TrendingUp, 
-  CheckCircle2, 
-  AlertTriangle,
-  FileText,
-  Plus,
-  Truck,
-  Wrench,
-  Navigation,
-  Clock,
-  UserCheck,
-  Percent,
-  Layers,
-  MapPin
+  Truck, Users, ShieldAlert, DollarSign, Wrench, 
+  TrendingUp, MapPin, Activity, Calendar, AlertTriangle, 
+  CheckCircle2, Gauge, Scale, Fuel, BarChart3
 } from 'lucide-react';
 
-export default function DashboardPage() {
-  // State management for specified 3.2 filter architecture
-  const [vehicleType, setVehicleType] = useState('All');
-  const [status, setStatus] = useState('All');
-  const [region, setRegion] = useState('All');
+export default async function DashboardPage() {
+  // Read role context instantly from middleware header or fallback to cookie store
+  const headerList = await headers();
+  const cookieStore = await cookies();
+  
+  const headerTag = headerList.get('x-user-tag');
+  const cookieTag = cookieStore.get('user_tag')?.value;
+  const userTag = parseInt(headerTag || cookieTag || '1', 10);
 
   return (
     <div className="space-y-6 max-w-[1500px] mx-auto pb-12">
       
-      {/* Title Header Block */}
-      <div>
-        <h1 className="text-3xl font-black text-[#2B2325] tracking-tight">Fleet Overview</h1>
-        <p className="text-xs text-[#8A7578] font-semibold mt-0.5">Real-time operational status and metrics</p>
-      </div>
-
-      {/* --- SPEC 3.2: FILTER CONTROLS BAR --- */}
-      <div className="bg-white border border-[#EEDADF] p-4 rounded-2xl shadow-sm flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2 text-xs font-black text-[#5E4D50] mr-2">
-          <span>FILTERS:</span>
+      {/* Dynamic Subheader Based on Role Matrix */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-[#EEDADF] p-6 rounded-[32px] shadow-sm">
+        <div>
+          <span className="text-[10px] font-black tracking-widest text-[#9E003F] uppercase bg-[#FFF1F3] px-2.5 py-1 rounded-md border border-[#EEDADF]">
+            {userTag === 1 && "Role Context: Fleet Manager"}
+            {userTag === 2 && "Role Context: Operator / Dispatcher"}
+            {userTag === 3 && "Role Context: Safety & Compliance Officer"}
+            {userTag === 4 && "Role Context: Financial Analyst"}
+          </span>
+          <h1 className="text-3xl font-black text-[#2B2325] tracking-tight mt-2">Central Control Center</h1>
+          <p className="text-xs text-[#8A7578] font-semibold mt-0.5">
+            {userTag === 1 && "Manage global lifecycle tracking, asset health vectors, and yard optimization schedules."}
+            {userTag === 2 && "Execute active payload verification sequences, match operators, and initiate road dispatches."}
+            {userTag === 3 && "Audit operator behavior compliance indexes, medical flags, and licensing hold limits."}
+            {userTag === 4 && "Inspect rolling operating expenditures, fuel log margin curves, and system ROI models."}
+          </p>
         </div>
-        
-        {/* Vehicle Type Filter */}
-        <div className="flex items-center gap-1.5">
-          <Layers className="h-3.5 w-3.5 text-[#8A7578]" />
-          <select 
-            value={vehicleType} 
-            onChange={(e) => setVehicleType(e.target.value)} 
-            className="bg-white border border-[#EEDADF] text-xs font-bold px-3 py-1.5 rounded-xl text-[#2B2325] outline-none cursor-pointer"
-          >
-            <option value="All">All Vehicle Types</option>
-            <option value="Class 8 Truck">Class 8 Trucks</option>
-            <option value="Box Truck">Box Trucks</option>
-            <option value="Cargo Van">Cargo Vans</option>
-          </select>
-        </div>
-
-        {/* Status Filter */}
-        <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="h-3.5 w-3.5 text-[#8A7578]" />
-          <select 
-            value={status} 
-            onChange={(e) => setStatus(e.target.value)} 
-            className="bg-white border border-[#EEDADF] text-xs font-bold px-3 py-1.5 rounded-xl text-[#2B2325] outline-none cursor-pointer"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Available">Available</option>
-            <option value="On Trip">On Trip</option>
-            <option value="In Shop">In Shop</option>
-            <option value="Retired">Retired</option>
-          </select>
-        </div>
-
-        {/* Region Filter */}
-        <div className="flex items-center gap-1.5">
-          <MapPin className="h-3.5 w-3.5 text-[#8A7578]" />
-          <select 
-            value={region} 
-            onChange={(e) => setRegion(e.target.value)} 
-            className="bg-white border border-[#EEDADF] text-xs font-bold px-3 py-1.5 rounded-xl text-[#2B2325] outline-none cursor-pointer"
-          >
-            <option value="All">All Regions</option>
-            <option value="North">North Region</option>
-            <option value="South">South Region</option>
-            <option value="East">East Region</option>
-            <option value="West">West Region</option>
-          </select>
+        <div className="text-xs font-bold text-[#5E4D50] bg-[#FDF8F8] border border-[#EEDADF] px-4 py-2 rounded-2xl flex items-center gap-2 self-start sm:self-auto">
+          <Calendar className="h-4 w-4 text-[#9E003F]" />
+          <span>Operational Cycle: Jul 2026</span>
         </div>
       </div>
 
-      {/* --- SPEC 3.2: ROW 1 - 7 MANDATORY KPI CARDS DECK --- */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* ========================================================= */}
+      {/* 1. DYNAMIC KPI BLOCKS (NO INTER-ROLE LAYOUT OVERLAPS)     */}
+      {/* ========================================================= */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* KPI 1: Active Vehicles */}
-        <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px]">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">Active Vehicles</span>
-            <div className="p-1.5 rounded-lg text-[#0369A1] bg-[#E0F2FE]"><Truck className="h-3.5 w-3.5" /></div>
-          </div>
-          <h3 className="text-3xl font-black text-[#2B2325] mt-2">142</h3>
-        </div>
+        {userTag === 1 && (
+          <>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Total Assets Logged</span><h3 className="text-3xl font-black text-[#2B2325] mt-2">1,240</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Global Fleet Uptime</span><h3 className="text-3xl font-black text-[#15803D] mt-2">94.8%</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Active Garage Backlog</span><h3 className="text-3xl font-black text-amber-600 mt-2">14 Units</h3></div>
+            <div className="bg-[#FFF1F3] border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Decommission Cycles</span><h3 className="text-3xl font-black text-[#9E003F] mt-2">3 Pending</h3></div>
+          </>
+        )}
 
-        {/* KPI 2: Available Vehicles */}
-        <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px]">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">Available Vehicles</span>
-            <div className="p-1.5 rounded-lg text-[#15803D] bg-[#E4F5EB]"><CheckCircle2 className="h-3.5 w-3.5" /></div>
-          </div>
-          <h3 className="text-3xl font-black text-[#2B2325] mt-2">18</h3>
-        </div>
+        {userTag === 2 && (
+          <>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Available Vectors</span><h3 className="text-3xl font-black text-green-700 mt-2">42 Units</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Active Transits</span><h3 className="text-3xl font-black text-[#0369A1] mt-2">89 Trips</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Unassigned Payloads</span><h3 className="text-3xl font-black text-amber-600 mt-2">7 Cargoes</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Completed (Today)</span><h3 className="text-3xl font-black text-[#2B2325] mt-2">31</h3></div>
+          </>
+        )}
 
-        {/* KPI 3: Vehicles in Maintenance */}
-        <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px]">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">Vehicles In Maintenance</span>
-            <div className="p-1.5 rounded-lg text-[#B45309] bg-[#FEF3C7]"><Wrench className="h-3.5 w-3.5" /></div>
-          </div>
-          <h3 className="text-3xl font-black text-[#2B2325] mt-2">9</h3>
-        </div>
+        {userTag === 3 && (
+          <>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Fleet Safety Score</span><h3 className="text-3xl font-black text-[#15803D] mt-2">94.2%</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Critical Audit Holds</span><h3 className="text-3xl font-black text-[#9E003F] mt-2">5 Suspended</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">License Renewals (15d)</span><h3 className="text-3xl font-black text-amber-600 mt-2">12 Alerts</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">HOS Violations</span><h3 className="text-3xl font-black text-[#2B2325] mt-2">0</h3></div>
+          </>
+        )}
 
-        {/* KPI 4: Active Trips */}
-        <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px]">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">Active Trips</span>
-            <div className="p-1.5 rounded-lg text-[#6B21A8] bg-[#F3E8FF]"><Navigation className="h-3.5 w-3.5" /></div>
-          </div>
-          <h3 className="text-3xl font-black text-[#2B2325] mt-2">84</h3>
-        </div>
-
-        {/* KPI 5: Pending Trips */}
-        <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px]">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">Pending Trips</span>
-            <div className="p-1.5 rounded-lg text-[#4B5563] bg-[#F3F4F6]"><Clock className="h-3.5 w-3.5" /></div>
-          </div>
-          <h3 className="text-3xl font-black text-[#2B2325] mt-2">26</h3>
-        </div>
-
-        {/* KPI 6: Drivers On Duty */}
-        <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px]">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">Drivers On Duty</span>
-            <div className="p-1.5 rounded-lg text-[#0F766E] bg-[#CCFBF1]"><UserCheck className="h-3.5 w-3.5" /></div>
-          </div>
-          <h3 className="text-3xl font-black text-[#2B2325] mt-2">138</h3>
-        </div>
-
-        {/* KPI 7: Fleet Utilization (%) */}
-        <div className="bg-[#2B2325] text-white p-5 rounded-3xl shadow-sm flex flex-col justify-between min-h-[125px] col-span-2 xl:col-span-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#A6999B] uppercase tracking-wider">Fleet Utilization</span>
-            <div className="p-1.5 rounded-lg text-[#9E003F] bg-[#FFF1F3]"><Percent className="h-3.5 w-3.5" /></div>
-          </div>
-          <div className="flex items-baseline gap-4 mt-1">
-            <h3 className="text-3xl font-black tracking-tight text-white">92.4%</h3>
-            <span className="text-[11px] font-bold text-[#4ADE80] flex items-center gap-1">
-              Optimal Performance
-            </span>
-          </div>
-        </div>
+        {userTag === 4 && (
+          <>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Rolling OpEx Net</span><h3 className="text-3xl font-black text-[#2B2325] mt-2">$421,900</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Fuel Burn Expenditures</span><h3 className="text-3xl font-black text-[#0369A1] mt-2">$184,230</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#8A7578] uppercase">Maintenance Overhead</span><h3 className="text-3xl font-black text-[#9E003F] mt-2">$54,100</h3></div>
+            <div className="bg-white border border-[#EEDADF] p-5 rounded-3xl shadow-sm"><span className="text-[10px] font-black text-[#15803D] uppercase">Platform True ROI</span><h3 className="text-3xl font-black text-[#15803D] mt-2">+18.4%</h3></div>
+          </>
+        )}
 
       </div>
 
-      {/* --- ROW 2: GRAPH AND FINANCIAL SUMMARY --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+      {/* ========================================================= */}
+      {/* 2. MAIN HUB DATA SPLIT (ROLE SPECIFIC INTERFACES)         */}
+      {/* ========================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
-        {/* Performance Stacked Bar Chart */}
-        <div className="lg:col-span-2 bg-white border border-[#EEDADF] p-6 rounded-[32px] shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-md font-black text-[#2B2325]">Fleet Dynamic Performance</h3>
-              <p className="text-[11px] text-[#8A7578] font-medium mt-0.5">Trip Volume vs Capacity (Weekly View)</p>
-            </div>
-            <div className="flex items-center gap-3 text-[10px] font-bold text-[#5E4D50]">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#9E003F]"></span><span>Trips</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#FCE7EA]"></span><span>Capacity</span>
-              </div>
-            </div>
-          </div>
-
-          {/* High Fidelity Native CSS Chart Layout */}
-          <div className="grid grid-cols-7 gap-4 items-end h-56 pt-6 px-2 border-b border-[#FDF8F8]">
-            {[
-              { day: 'MON', cap: 'h-32', trip: 'h-16' },
-              { day: 'TUE', cap: 'h-40', trip: 'h-24' },
-              { day: 'WED', cap: 'h-44', trip: 'h-32' },
-              { day: 'THU', cap: 'h-36', trip: 'h-20' },
-              { day: 'FRI', cap: 'h-48', trip: 'h-36' },
-              { day: 'SAT', cap: 'h-24', trip: 'h-12' },
-              { day: 'SUN', cap: 'h-16', trip: 'h-4' },
-            ].map((bar, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 h-full justify-end relative group">
-                <div className="w-full bg-[#FFF1F3] rounded-t-lg relative flex items-end justify-center overflow-hidden transition-all duration-300 group-hover:bg-[#FCE7EA]" style={{ height: '85%' }}>
-                  <div className={`w-full bg-[#9E003F] rounded-t-lg transition-all ${bar.trip}`} style={{ opacity: 0.9 }}></div>
+        {userTag === 1 && (
+          <>
+            <div className="lg:col-span-8 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[#FDF8F8] pb-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-[#9E003F]" />
+                  <h3 className="font-black text-[#2B2325] text-base">Global Asset Telematics Routing Matrix</h3>
                 </div>
-                <span className="text-[10px] font-black text-[#8A7578] mt-1">{bar.day}</span>
+                <span className="text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">LIVE STREAMS</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Financial Deep Crimson Solid Panel Card */}
-        <div className="bg-[#9E003F] text-white p-7 rounded-[32px] shadow-sm flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute right-6 bottom-6 h-12 w-12 bg-[#800032] rounded-full flex items-center justify-center">
-            <FileText className="h-5 w-5 text-white opacity-80" />
-          </div>
-
-          <div>
-            <h3 className="text-lg font-black tracking-tight">Financial Summary</h3>
-            
-            <div className="mt-6 space-y-1">
-              <span className="text-[9px] font-black uppercase text-[#FADEE4] tracking-wider block">Total Revenue</span>
-              <h4 className="text-4xl font-black tracking-tight">$284,500</h4>
-            </div>
-
-            <div className="mt-4 space-y-1">
-              <span className="text-[9px] font-black uppercase text-[#FADEE4] tracking-wider block">Operating Cost</span>
-              <h5 className="text-xl font-black text-[#FFF1F3]">$156,220</h5>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-[#B31A53] mt-4 flex items-center justify-between">
-            <div>
-              <span className="text-[9px] font-black uppercase text-[#FADEE4] tracking-wider block">Efficiency Ratio</span>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-lg font-black">1.82</span>
-                <span className="bg-[#B31A53] text-[#FFF1F3] text-[9px] font-black px-1.5 py-0.5 rounded">OPTIMAL</span>
+              <div className="p-12 border-2 border-dashed border-[#EEDADF] bg-[#FFF1F3]/10 rounded-2xl flex flex-col items-center text-center">
+                <MapPin className="h-8 w-8 text-[#8A7578] mb-2 animate-pulse" />
+                <p className="text-xs font-black text-[#2B2325]">Active Yard Location & Depot Allocation Matrix</p>
+                <p className="text-[10px] text-[#8A7578] font-semibold mt-1">Simulated mapping data streaming across active terminals...</p>
               </div>
             </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* --- ROW 3: ALERTS AND TIMELINE ACTIVITY SPLIT --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        
-        {/* Critical Operations Alerts Module */}
-        <div className="lg:col-span-7 bg-white border border-[#EEDADF] p-6 rounded-[32px] shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-1 border-b border-[#FDF8F8]">
-            <h3 className="text-md font-black text-[#2B2325]">Critical Alerts</h3>
-            <span className="bg-[#FFF1F3] text-[#9E003F] border border-[#EEDADF] text-[9px] font-black px-2.5 py-0.5 rounded-md">
-              2 ACTION REQUIRED
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {/* Alert Item 1 */}
-            <div className="bg-[#FFF1F3] border border-[#EEDADF] p-4 rounded-2xl flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-[#FAFAFA] border border-[#EEDADF] rounded-xl text-[#9E003F] mt-0.5">
-                  <AlertTriangle className="h-4 w-4" />
+            <div className="lg:col-span-4 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#FDF8F8] pb-2">
+                  <Wrench className="h-4 w-4 text-[#9E003F]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B2325]">Asset Lifecycle Evaluation</h4>
                 </div>
-                <div>
-                  <h5 className="text-xs font-black text-[#2B2325]">Vehicle TR-4022: Overdue Maintenance</h5>
-                  <p className="text-[11px] text-[#5E4D50] font-medium mt-0.5">Brake pad inspection exceeded by 450 miles. Status updated to: In Shop.</p>
+                <div className="bg-[#FFF1F3] p-3 rounded-xl border border-[#EEDADF] text-xs space-y-2">
+                  <div className="flex justify-between font-black text-[#2B2325]"><span>Van-05 Core TCO:</span><span className="font-mono">$24,500</span></div>
+                  <div className="w-full bg-white h-1 rounded-full overflow-hidden">
+                    <div className="bg-[#9E003F] h-full w-3/4"></div>
+                  </div>
+                  <p className="text-[9px] font-semibold text-[#8A7578]">Depreciation index within planned baseline margins.</p>
                 </div>
               </div>
-              <button className="text-xs font-bold text-[#9E003F] underline whitespace-nowrap hover:text-[#800032]">
-                Resolve
+              <button className="w-full py-2 bg-[#9E003F] text-white text-xs font-black rounded-xl hover:bg-[#800032] transition">
+                Configure Maintenance Protocols
               </button>
             </div>
+          </>
+        )}
 
-            {/* Alert Item 2 */}
-            <div className="bg-[#FFF1F3] border border-[#EEDADF] p-4 rounded-2xl flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-[#FAFAFA] border border-[#EEDADF] rounded-xl text-[#2B2325] mt-0.5">
-                  <FileText className="h-4 w-4" />
-                </div>
-                <div>
-                  <h5 className="text-xs font-black text-[#2B2325]">Driver License Expiring: Elias Thorne</h5>
-                  <p className="text-[11px] text-[#5E4D50] font-medium mt-0.5">Class B CDL expires in 14 days (Dec 28, 2026). Triggers automated email reminder.</p>
-                </div>
+        {userTag === 2 && (
+          <>
+            <div className="lg:col-span-6 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm">
+              <div className="flex items-center gap-2 border-b border-[#FDF8F8] pb-3">
+                <Scale className="h-5 w-5 text-[#9E003F]" />
+                <h3 className="font-black text-[#2B2325] text-base">Step 3 & 4: Payload Weight Discretion Engine</h3>
               </div>
-              <button className="text-xs font-bold text-[#2B2325] underline whitespace-nowrap">
-                Notify
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Real-time Telemetry Activity Feed */}
-        <div className="lg:col-span-5 bg-white border border-[#EEDADF] p-6 rounded-[32px] shadow-sm flex flex-col justify-between min-h-[310px] relative">
-          <div>
-            <div className="flex items-center justify-between mb-4 pb-1 border-b border-[#FDF8F8]">
-              <h3 className="text-md font-black text-[#2B2325]">Activity Feed</h3>
-              <button className="text-xs font-bold text-[#9E003F] hover:underline">View all</button>
-            </div>
-
-            {/* Vertical Timeline Container */}
-            <div className="relative space-y-5 pl-6">
-              <div className="absolute left-2.5 top-2 bottom-2 w-0.5 bg-[#EEDADF]"></div>
-
-              {/* Activity Step 1 */}
-              <div className="relative flex items-start justify-between text-xs">
-                <div className="absolute -left-6 mt-0.5 w-3.5 h-3.5 bg-[#4ADE80] rounded-full border-2 border-white"></div>
-                <div>
-                  <h6 className="font-black text-[#2B2325]">Trip Completed</h6>
-                  <p className="text-[11px] text-[#8A7578] mt-0.5">Vehicle TR-9021 and Driver back to Available.</p>
-                </div>
-                <span className="text-[9px] font-bold text-[#8A7578] uppercase whitespace-nowrap ml-2">12 min ago</span>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-900 mb-2">
+                Operational Dispatch Engine Active (Server Synced)
               </div>
-
-              {/* Activity Step 2 */}
-              <div className="relative flex items-start justify-between text-xs">
-                <div className="absolute -left-6 mt-0.5 w-3.5 h-3.5 bg-[#9E003F] rounded-full border-2 border-white"></div>
-                <div>
-                  <h6 className="font-black text-[#2B2325]">Fuel Expense Added</h6>
-                  <p className="text-[11px] text-[#8A7578] mt-0.5">$412.50 logged for TR-4402 by Driver Mika A.</p>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-[#8A7578] uppercase block">Target Cargo Reference Weight Limit</label>
+                <div className="w-full bg-gray-50 border border-[#EEDADF] px-4 py-2.5 rounded-xl text-xs font-bold text-[#2B2325]">
+                  Max Allowed: 500 kg (Van-05 Baseline)
                 </div>
-                <span className="text-[9px] font-bold text-[#8A7578] uppercase whitespace-nowrap ml-2">45 min ago</span>
-              </div>
-
-              {/* Activity Step 3 */}
-              <div className="relative flex items-start justify-between text-xs">
-                <div className="absolute -left-6 mt-0.5 w-3.5 h-3.5 bg-[#DBCBB7] rounded-full border-2 border-white"></div>
-                <div>
-                  <h6 className="font-black text-[#2B2325]">New Trip Dispatched</h6>
-                  <p className="text-[11px] text-[#8A7578] mt-0.5">Vehicle and Driver statuses updated to On Trip automatically.</p>
-                </div>
-                <span className="text-[9px] font-bold text-[#8A7578] uppercase whitespace-nowrap ml-2">2 hrs ago</span>
               </div>
             </div>
-          </div>
+            <div className="lg:col-span-6 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[#FDF8F8] pb-3">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-[#0369A1]" />
+                  <h3 className="font-black text-[#2B2325] text-base">Active Matching Terminal Pool</h3>
+                </div>
+              </div>
+              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                <div className="border border-[#EEDADF] p-3 rounded-xl flex justify-between items-center bg-[#FFF1F3]/20">
+                  <div><p className="text-xs font-black text-[#2B2325]">Van-05 Allocation</p><p className="text-[10px] text-[#8A7578] font-semibold">Available Capacity: 500 kg</p></div>
+                  <span className="text-[9px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">READY FOR DEPLOYMENT</span>
+                </div>
+                <div className="border border-[#EEDADF] p-3 rounded-xl flex justify-between items-center bg-gray-50 opacity-60">
+                  <div><p className="text-xs font-black text-gray-500">TR-8821-XP Allocation</p><p className="text-[10px] text-gray-400 font-semibold">Maintenance Hold</p></div>
+                  <span className="text-[9px] font-black text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-200">IN SHOP (HIDDEN)</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
-          {/* Floating Absolute Circular Plus Action Context */}
-          <button className="absolute bottom-6 right-6 h-10 w-10 bg-[#9E003F] hover:bg-[#800032] text-white rounded-full flex items-center justify-center shadow-md transition">
-            <Plus className="h-5 w-5" />
-          </button>
-        </div>
+        {userTag === 3 && (
+          <>
+            <div className="lg:col-span-8 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm">
+              <div className="flex items-center gap-2 border-b border-[#FDF8F8] pb-3">
+                <ShieldAlert className="h-5 w-5 text-[#9E003F]" />
+                <h3 className="font-black text-[#2B2325] text-base">Driver Compliance Audit Matrix</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="text-[10px] font-black text-[#8A7578] border-b border-[#EEDADF] uppercase bg-[#FFF1F3]/10">
+                      <th className="py-2 px-3">Operator</th>
+                      <th className="py-2 px-3">License Validation</th>
+                      <th className="py-2 px-3">Safety Index</th>
+                      <th className="py-2 px-3 text-right">Verification Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#FDF8F8] font-bold text-[#2B2325]">
+                    <tr>
+                      <td className="py-3 px-3">Alex</td>
+                      <td className="py-3 px-3 font-mono">TX-9921 (Valid)</td>
+                      <td className="py-3 px-3 text-green-700">95% (Excellent)</td>
+                      <td className="py-3 px-3 text-right"><span className="text-[9px] font-black bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded">PASSED</span></td>
+                    </tr>
+                    <tr className="bg-red-50/50">
+                      <td className="py-3 px-3">Amit Patel</td>
+                      <td className="py-3 px-3 font-mono text-[#9E003F]">IL-33829 (Expired)</td>
+                      <td className="py-3 px-3 text-red-600">64% (Critical)</td>
+                      <td className="py-3 px-3 text-right"><span className="text-[9px] font-black bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded">DISPATCH LOCKED</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="lg:col-span-4 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#FDF8F8] pb-2">
+                  <Gauge className="h-4 w-4 text-[#9E003F]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B2325]">HOS Monitoring Guard</h4>
+                </div>
+                <p className="text-[11px] font-semibold text-[#5E4D50]">Real-time Hours of Service (HOS) processing is active across all regional terminals.</p>
+              </div>
+              <div className="bg-green-50 border border-green-200 p-3 rounded-xl text-center">
+                <p className="text-[10px] font-black text-green-800">All Active Operators Complying with Regulatory Rest Frames</p>
+              </div>
+            </div>
+          </>
+        )}
+
+        {userTag === 4 && (
+          <>
+            <div className="lg:col-span-7 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[#FDF8F8] pb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-[#9E003F]" />
+                  <h3 className="font-black text-[#2B2325] text-base">Step 9: Rolling Fuel Performance Margin Curve</h3>
+                </div>
+              </div>
+              <div className="grid grid-cols-7 gap-2 items-end h-36 pt-4 px-2 border-b border-[#FDF8F8]">
+                {[60, 65, 55, 70, 80, 74, 91].map((h, i) => (
+                  <div key={i} className="bg-[#0369A1]/20 hover:bg-[#0369A1]/40 rounded-t transition-all h-full relative flex items-end" style={{ height: `${h}%` }}>
+                    {i === 6 && <div className="w-full h-full bg-[#9E003F]"></div>}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between items-center text-[10px] font-black text-[#8A7578] pt-1">
+                <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN (CURRENT)</span>
+              </div>
+            </div>
+            <div className="lg:col-span-5 bg-white border border-[#EEDADF] p-6 rounded-[32px] space-y-4 shadow-sm flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#FDF8F8] pb-2">
+                  <Fuel className="h-4 w-4 text-[#9E003F]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B2325]">Dynamic Profitability Registry</h4>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between font-semibold border-b border-[#FDF8F8] pb-1">
+                    <span className="text-[#8A7578]">Net Trip Fuel Logged:</span>
+                    <span className="font-bold text-[#2B2325]">4,210 Gallons</span>
+                  </div>
+                  <div className="flex justify-between font-semibold border-b border-[#FDF8F8] pb-1">
+                    <span className="text-[#8A7578]">Avg Operational Cost / Mile:</span>
+                    <span className="font-bold text-[#2B2325]">$1.42</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span className="text-[#8A7578]">Gross Profit Variance:</span>
+                    <span className="font-black text-green-700">+$12,400</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-3 bg-[#FFF1F3] rounded-xl border border-[#EEDADF] text-[10px] text-[#9E003F] font-black text-center">
+                FINANCIAL CONFIDENTIAL: VIEW RESTRICTED TO AUDIT EXTRACTIONS
+              </div>
+            </div>
+          </>
+        )}
 
       </div>
-
     </div>
   );
 }

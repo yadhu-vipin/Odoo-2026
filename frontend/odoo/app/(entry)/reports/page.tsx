@@ -1,6 +1,5 @@
-"use client";
-
-import React, { useState } from 'react';
+import React from 'react';
+import { headers, cookies } from 'next/headers';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -8,19 +7,35 @@ import {
   Fuel, 
   BarChart2, 
   DollarSign, 
-  ChevronDown, 
   Truck, 
   FileSpreadsheet, 
   FileText,
   Calendar,
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldAlert
 } from 'lucide-react';
 
-export default function ReportsPage() {
-  // State management for view switching and temporal filtering
-  const [activeTab, setActiveTab] = useState('Overview');
-  const [timeFrame, setTimeFrame] = useState('Last 6 Months');
+export default async function ReportsPage() {
+  const headerList = await headers();
+  const cookieStore = await cookies();
+  
+  const headerTag = headerList.get('x-user-tag');
+  const cookieTag = cookieStore.get('user_tag')?.value;
+  const userTag = parseInt(headerTag || cookieTag || '1', 10);
+
+  // Financial Analysts (4) and Fleet Managers (1) have administrative clearance here
+  if (userTag !== 1 && userTag !== 4) {
+    return (
+      <div className="max-w-md mx-auto my-12 p-8 bg-red-50 border border-red-200 rounded-[24px] text-center space-y-3">
+        <ShieldAlert className="h-8 w-8 text-red-600 mx-auto" />
+        <h2 className="text-sm font-black text-red-900 uppercase tracking-wide">Access Level Restriction</h2>
+        <p className="text-xs font-semibold text-red-700">Your profile layout does not grant access privileges to confidential fleet budget ledger states and report performance curves.</p>
+      </div>
+    );
+  }
+
+  const timeFrame = 'Last 6 Months';
 
   return (
     <div className="space-y-6 max-w-[1500px] mx-auto pb-12">
@@ -32,62 +47,34 @@ export default function ReportsPage() {
           <p className="text-xs text-[#8A7578] font-semibold mt-0.5">Real-time performance metrics and cross-sectional cost distribution.</p>
         </div>
 
-        {/* View Selection Segmented Controls */}
-        <div className="bg-[#FFF1F3] border border-[#EEDADF] p-1 rounded-full flex items-center self-start sm:self-auto shadow-sm">
-          {['Overview', 'Vehicle ROI', 'Utilization'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`text-xs font-black px-4 py-1.5 rounded-full transition-all duration-200 ${
-                activeTab === tab 
-                  ? 'bg-[#9E003F] text-white shadow-sm' 
-                  : 'text-[#5E4D50] hover:text-[#2B2325]'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* View Selection Segmented Indicator */}
+        <div className="bg-[#FFF1F3] border border-[#EEDADF] px-4 py-2 rounded-full flex items-center self-start sm:self-auto shadow-sm">
+          <span className="text-xs font-black text-[#9E003F]">Active View: Overview Matrix</span>
         </div>
       </div>
 
       {/* Control Utility Filter Bar */}
       <div className="bg-white border border-[#EEDADF] p-4 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Timeframe Matrix Dropdown */}
           <div className="flex items-center gap-1.5 bg-white border border-[#EEDADF] px-3 py-1.5 rounded-xl text-xs font-bold text-[#2B2325]">
             <Calendar className="h-3.5 w-3.5 text-[#8A7578]" />
-            <select 
-              value={timeFrame}
-              onChange={(e) => setTimeFrame(e.target.value)}
-              className="bg-transparent outline-none cursor-pointer text-[#2B2325]"
-            >
-              <option value="Last 30 Days">Last 30 Days</option>
-              <option value="Last 6 Months">Last 6 Months</option>
-              <option value="This Year (FY26)">This Year (FY26)</option>
-            </select>
+            <span>Timeframe: {timeFrame}</span>
           </div>
 
-          {/* Fleet Class Segment Context */}
           <div className="flex items-center gap-1.5 bg-white border border-[#EEDADF] px-3 py-1.5 rounded-xl text-xs font-bold text-[#2B2325]">
             <Layers className="h-3.5 w-3.5 text-[#8A7578]" />
-            <select className="bg-transparent outline-none cursor-pointer text-[#2B2325]">
-              <option>All Fleet Segments</option>
-              <option>Heavy Duty (Class 8)</option>
-              <option>Medium Duty (Box Trucks)</option>
-              <option>Light Duty (Cargo Vans)</option>
-            </select>
+            <span>All Fleet Segments</span>
           </div>
         </div>
 
         <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider">
-          Data Engine Status: Live Sync (Active)
+          Data Engine Status: Server Sync (Active)
         </span>
       </div>
 
       {/* --- ROW 1: PERFORMANCE KPI CARDS DECK --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
         
-        {/* Card 1: Avg. Fuel Efficiency */}
         <div className="bg-white border border-[#EEDADF] p-5 rounded-[28px] shadow-sm flex flex-col justify-between min-h-[150px]">
           <div className="flex items-start justify-between">
             <div className="h-8 w-8 bg-[#E0F2FE] text-[#0369A1] rounded-xl flex items-center justify-center">
@@ -109,7 +96,6 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Card 2: Fleet Utilization */}
         <div className="bg-white border border-[#EEDADF] p-5 rounded-[28px] shadow-sm flex flex-col justify-between min-h-[150px]">
           <div className="flex items-start justify-between">
             <div className="h-8 w-8 bg-[#FFF1F3] text-[#9E003F] rounded-xl flex items-center justify-center">
@@ -136,7 +122,6 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Card 3: Projected Vehicle ROI */}
         <div className="bg-[#2B2325] text-white p-5 rounded-[28px] shadow-sm flex flex-col justify-between min-h-[150px]">
           <div className="flex items-start justify-between">
             <div className="h-8 w-8 bg-[#FEF3C7] text-[#B45309] rounded-xl flex items-center justify-center">
@@ -164,7 +149,6 @@ export default function ReportsPage() {
       {/* --- ROW 2: GRAPH TIMELINE AND ACTION CARDS SPLIT --- */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
-        {/* Main Cost Analysis Chart Card Container */}
         <div className="lg:col-span-8 bg-white border border-[#EEDADF] p-6 rounded-[32px] shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -176,7 +160,6 @@ export default function ReportsPage() {
             </span>
           </div>
 
-          {/* High Fidelity Native Line Chart SVG Render Layer */}
           <div className="relative w-full h-52 my-4">
             <svg className="w-full h-full overflow-visible" viewBox="0 0 600 200" preserveAspectRatio="none">
               <line x1="0" y1="40" x2="600" y2="40" stroke="#FDF8F8" strokeWidth="2" />
@@ -184,14 +167,11 @@ export default function ReportsPage() {
               <line x1="0" y1="140" x2="600" y2="140" stroke="#FDF8F8" strokeWidth="2" />
               <line x1="0" y1="190" x2="600" y2="190" stroke="#FDF8F8" strokeWidth="2" />
 
-              {/* Shaded Area Region Gradient Fill underneath Operational Line */}
               <path 
                 d="M 10 160 L 100 145 L 180 155 L 270 120 L 360 140 L 450 110 L 590 80 L 590 190 L 10 190 Z" 
                 fill="#FFF1F3" 
                 opacity="0.6"
               />
-
-              {/* Baseline Trend 2: Maintenance Investment (Dotted Blue Line) */}
               <path 
                 d="M 10 170 Q 100 165, 185 162 T 360 155 T 590 145" 
                 fill="none" 
@@ -199,8 +179,6 @@ export default function ReportsPage() {
                 strokeWidth="2.5" 
                 strokeDasharray="4,4" 
               />
-
-              {/* Trend Line 1: Operational Costs (Continuous Crimson Line) */}
               <path 
                 d="M 10 160 L 100 145 L 180 155 L 270 120 L 360 140 L 450 110 L 590 80" 
                 fill="none" 
@@ -208,15 +186,12 @@ export default function ReportsPage() {
                 strokeWidth="3" 
                 strokeLinecap="round"
               />
-
-              {/* Accent Vertex Node Plots */}
               <circle cx="270" cy="120" r="4" fill="#9E003F" />
               <circle cx="450" cy="110" r="4" fill="#9E003F" />
               <circle cx="590" cy="80" r="4" fill="#9E003F" />
             </svg>
           </div>
 
-          {/* Graph Legend Base Row */}
           <div className="flex items-center gap-4 text-[10px] font-black text-[#5E4D50] border-t border-[#FDF8F8] pt-3">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#9E003F]"></span>
@@ -229,16 +204,12 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Right Action and Aggregates Context Bar Stack */}
         <div className="lg:col-span-4 flex flex-col justify-between gap-5">
           
-          {/* Sub Panel 1: Model Comparison Registry Stack */}
           <div className="bg-[#FFF1F3]/40 border border-[#EEDADF] p-5 rounded-[32px] shadow-sm flex-1 flex flex-col justify-between space-y-4">
             <div>
               <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider block mb-3">Model Lifecycle Efficiency</span>
               <div className="space-y-2">
-                
-                {/* Row 1 */}
                 <div className="bg-white border border-[#EEDADF]/60 p-3 rounded-2xl flex items-center justify-between text-xs font-bold">
                   <div className="flex items-center gap-2.5">
                     <div className="h-7 w-7 rounded-lg bg-[#FFF1F3] border border-[#EEDADF] flex items-center justify-center text-[#9E003F]">
@@ -255,7 +226,6 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* Row 2 */}
                 <div className="bg-white border border-[#EEDADF]/60 p-3 rounded-2xl flex items-center justify-between text-xs font-bold">
                   <div className="flex items-center gap-2.5">
                     <div className="h-7 w-7 rounded-lg bg-[#E0F2FE] text-[#0369A1] border border-blue-100 flex items-center justify-center">
@@ -271,7 +241,6 @@ export default function ReportsPage() {
                     <span className="text-[10px] font-bold text-[#991B1B] block mt-0.5">+5% cost leak</span>
                   </div>
                 </div>
-
               </div>
             </div>
 
@@ -281,11 +250,9 @@ export default function ReportsPage() {
             </button>
           </div>
 
-          {/* Sub Panel 2: Export Processing Actions Block */}
           <div className="bg-[#FFF1F3]/40 border border-[#EEDADF] p-5 rounded-[32px] shadow-sm space-y-3">
             <span className="text-[10px] font-black text-[#8A7578] uppercase tracking-wider block">Pipeline Dispatch Exports</span>
             
-            {/* Export Action Card 1 */}
             <div className="bg-white border border-[#EEDADF]/60 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-white/80 transition group">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-[#FFF1F3] text-[#9E003F] border border-[#EEDADF] rounded-xl">
@@ -296,7 +263,6 @@ export default function ReportsPage() {
               <Download className="h-4 w-4 text-[#8A7578] group-hover:text-[#2B2325] transition" />
             </div>
 
-            {/* Export Action Card 2 */}
             <div className="bg-white border border-[#EEDADF]/60 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-white/80 transition group">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-[#E0F2FE] text-[#0369A1] border border-blue-100 rounded-xl">

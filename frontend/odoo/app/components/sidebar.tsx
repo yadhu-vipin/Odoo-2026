@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Truck, 
@@ -15,6 +16,23 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar() {
+  const pathname = usePathname();
+
+  const navItems = [
+    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+    { label: 'Vehicles', icon: Truck, href: '/vehicles' },
+    { label: 'Drivers', icon: Users, href: '/drivers' },
+    { label: 'Trips', icon: Route, href: '/trips' },
+    { label: 'Maintenance', icon: Wrench, href: '/maintenance' },
+    { label: 'Expenses', icon: CreditCard, href: '/expenses' },
+    { label: 'Reports', icon: BarChart3, href: '/reports' },
+  ];
+
+  const bottomItems = [
+    { label: 'Help', icon: HelpCircle, href: '/help' },
+    { label: 'Settings', icon: Settings, href: '/settings' },
+  ];
+
   return (
     <aside className="w-64 bg-[#FFF1F3] border-r border-[#EEDADF] flex flex-col justify-between fixed h-screen left-0 top-0 z-20">
       <div className="p-5 space-y-7">
@@ -32,30 +50,25 @@ export default function Sidebar() {
 
         {/* Navigation Menu */}
         <nav className="space-y-1">
-          <a href="/dashboard" className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#FADEE4] text-[#9E003F] font-bold text-sm border-l-4 border-[#9E003F] transition">
-            <div className="flex items-center gap-3">
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Dashboard</span>
-            </div>
-          </a>
-
-          {[
-            { label: 'Vehicles', icon: Truck, href: '/vehicles' },
-            { label: 'Drivers', icon: Users, href: '/drivers' },
-            { label: 'Trips', icon: Route, href: '/trips' },
-            { label: 'Maintenance', icon: Wrench, href: '/maintenance' },
-            { label: 'Expenses', icon: CreditCard, href: '/expenses' },
-            { label: 'Reports', icon: BarChart3, href: '/reports' },
-          ].map((item) => (
-            <a 
-              key={item.label} 
-              href={item.href} 
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#5E4D50] hover:bg-[#FCE7EA] hover:text-[#2B2325] font-semibold text-sm transition"
-            >
-              <item.icon className="h-4 w-4 text-[#8A7578]" />
-              <span>{item.label}</span>
-            </a>
-          ))}
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <a 
+                key={item.label} 
+                href={item.href} 
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition ${
+                  isActive 
+                    ? 'bg-[#FADEE4] text-[#9E003F] font-bold border-l-4 border-[#9E003F]' 
+                    : 'text-[#5E4D50] hover:bg-[#FCE7EA] hover:text-[#2B2325] font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className={`h-4 w-4 ${isActive ? 'text-[#9E003F]' : 'text-[#8A7578]'}`} />
+                  <span>{item.label}</span>
+                </div>
+              </a>
+            );
+          })}
         </nav>
 
         {/* Primary Action Button */}
@@ -67,14 +80,23 @@ export default function Sidebar() {
 
       {/* Bottom Settings Navigation */}
       <div className="p-5 border-t border-[#EEDADF] space-y-1">
-        <a href="/help" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#5E4D50] hover:bg-[#FCE7EA] font-semibold text-sm transition">
-          <HelpCircle className="h-4 w-4 text-[#8A7578]" />
-          <span>Help</span>
-        </a>
-        <a href="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#5E4D50] hover:bg-[#FCE7EA] font-semibold text-sm transition">
-          <Settings className="h-4 w-4 text-[#8A7578]" />
-          <span>Settings</span>
-        </a>
+        {bottomItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <a 
+              key={item.label}
+              href={item.href} 
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+                isActive 
+                  ? 'bg-[#FADEE4] text-[#9E003F] font-bold border-l-4 border-[#9E003F]' 
+                  : 'text-[#5E4D50] hover:bg-[#FCE7EA] font-semibold'
+              }`}
+            >
+              <item.icon className={`h-4 w-4 ${isActive ? 'text-[#9E003F]' : 'text-[#8A7578]'}`} />
+              <span>{item.label}</span>
+            </a>
+          );
+        })}
       </div>
     </aside>
   );
