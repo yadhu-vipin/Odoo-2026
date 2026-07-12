@@ -10,6 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  //  url      = env("DATABASE_URL")
 }
 
 model roles {
@@ -24,6 +25,8 @@ model user {
   email           String  @unique
   password        String
   isEmailVerified Boolean @default(false)
-  roleId          Int
+  resetPasswordToken   String?
+  resetPasswordExpiry  DateTime?
+  roleId          Int     @default(0)
   userRoll        roles   @relation(fields: [roleId], references: [roleId])
 }

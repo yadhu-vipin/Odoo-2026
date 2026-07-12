@@ -13,9 +13,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* REMOVED: The @media (prefers-color-scheme: dark) block that was forcing dark mode.
-  This stops the system theme from overriding your beautiful hackathon theme colors!
-*/
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+}
 
 body {
   background-color: var(--background);
